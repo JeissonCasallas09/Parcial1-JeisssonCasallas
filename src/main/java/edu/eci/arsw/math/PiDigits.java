@@ -1,5 +1,9 @@
 package edu.eci.arsw.math;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 ///  <summary>
 ///  An implementation of the Bailey-Borwein-Plouffe formula for calculating hexadecimal
 ///  digits of pi.
@@ -10,42 +14,68 @@ public class PiDigits {
 
     private static int DigitsPerSum = 8;
     private static double Epsilon = 1e-17;
-
+    private static List<PiDigitsThread> threadList= new LinkedList<>();
     
-    /**
-     * Returns a range of hexadecimal digits of pi.
-     * @param start The starting location of the range.
-     * @param count The number of digits to return
-     * @return An array containing the hexadecimal digits.
-     */
-    public static byte[] getDigits(int start, int count) {
-        if (start < 0) {
-            throw new RuntimeException("Invalid Interval");
-        }
-
-        if (count < 0) {
-            throw new RuntimeException("Invalid Interval");
-        }
-
+    
+    public static byte[] getDigits(int start,int count, int N){
+        
+        count=count/N;
         byte[] digits = new byte[count];
-        double sum = 0;
-
-        for (int i = 0; i < count; i++) {
-            if (i % DigitsPerSum == 0) {
-                sum = 4 * sum(1, start)
-                        - 2 * sum(4, start)
-                        - sum(5, start)
-                        - sum(6, start);
-
-                start += DigitsPerSum;
-            }
-
-            sum = 16 * (sum - Math.floor(sum));
-            digits[i] = (byte) sum;
+        
+        for(int i=0 ;i < N; i++){
+            PiDigitsThread thread= new PiDigitsThread(start, count);
+            threadList.add(thread);  
+            System.out.println(threadList);
         }
+        for(PiDigitsThread thread:threadList){
+           thread.start();
+           byte[] hilos= thread.getDigits(start, count);
+           start=start+count;
+           //digits.add();
+           try {
+            thread.join();
+            } catch (InterruptedException e) {
+            e.printStackTrace();
+            }            
 
+        } 
         return digits;
     }
+
+    // /**
+    //  * Returns a range of hexadecimal digits of pi.
+    //  * @param start The starting location of the range.
+    //  * @param count The number of digits to return
+    //  * @return An array containing the hexadecimal digits.
+    //  */
+    // public static byte[] getDigits(int start, int count) {
+    //     if (start < 0) {
+    //         throw new RuntimeException("Invalid Interval");
+    //     }
+
+    //     if (count < 0) {
+    //         throw new RuntimeException("Invalid Interval");
+    //     }
+
+    //     byte[] digits = new byte[count];
+    //     double sum = 0;
+
+    //     for (int i = 0; i < count; i++) {
+    //         if (i % DigitsPerSum == 0) {
+    //             sum = 4 * sum(1, start)
+    //                     - 2 * sum(4, start)
+    //                     - sum(5, start)
+    //                     - sum(6, start);
+
+    //             start += DigitsPerSum;
+    //         }
+
+    //         sum = 16 * (sum - Math.floor(sum));
+    //         digits[i] = (byte) sum;
+    //     }
+
+    //     return digits;
+    // }
 
     /// <summary>
     /// Returns the sum of 16^(n - k)/(8 * k + m) from 0 to k.
